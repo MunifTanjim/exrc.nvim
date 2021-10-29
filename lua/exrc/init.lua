@@ -53,13 +53,19 @@ function mod.source(filepath)
   local cached_result = cache.get(filepath)
 
   if type(cached_result) == "boolean" then
-    return cached_result
+    if not cached_result then
+      return false
+    end
+
+    vim.cmd("source " .. filepath)
+    return true
   end
 
   local current_hash = file_hash(filepath)
 
   if type(cached_result) == "string" then
     if current_hash == cached_result then
+      vim.cmd("source " .. filepath)
       return true
     end
   end
