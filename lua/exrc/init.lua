@@ -1,7 +1,6 @@
 local cache = require("exrc.cache")
 local options = require("exrc.options")
 local Menu = require("nui.menu")
-local autocmd = require("nui.utils.autocmd")
 
 local function file_hash(filepath)
   return vim.fn.sha256(table.concat(vim.fn.readfile(filepath, "b"), "\n"))
@@ -44,9 +43,11 @@ function mod.try_source()
   for _, file in ipairs(options.get("files")) do
     local filepath = vim.fn.fnamemodify(file, ":p")
     if vim.fn.glob(filepath) ~= "" then
-      return mod.source(filepath)
+      mod.source(filepath)
+      break
     end
   end
+  vim.api.nvim_exec([[doautocmd <nomodeline> User ExrcDone]], false)
 end
 
 function mod.source(filepath)
