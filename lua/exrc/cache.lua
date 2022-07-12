@@ -46,6 +46,7 @@ function cache.setup()
   end
 
   if vim.fn.glob(cache.path) == "" then
+    vim.fn.mkdir(vim.fn.fnamemodify(cache.path, ":h"), "p")
     vim.fn.writefile({ json_encode(data) }, cache.path)
   end
 
