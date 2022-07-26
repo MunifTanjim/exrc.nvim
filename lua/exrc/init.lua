@@ -43,25 +43,29 @@ function mod.try_source()
   for _, file in ipairs(options.get("files")) do
     local filepath = vim.fn.fnamemodify(file, ":p")
     if vim.fn.filereadable(filepath) == 1 then
-      mod.source(filepath)
-      break
+      return mod.source(filepath)
     end
   end
-  vim.api.nvim_exec([[doautocmd <nomodeline> User ExrcDone]], false)
+end
+
+local function on_source_done(sourced)
+  if sourced then
+    vim.api.nvim_exec([[doautocmd <nomodeline> User ExrcDone]], false)
+  end
 end
 
 function mod.source(filepath)
   local cached_result = cache.get(filepath)
 
   if cached_result and not cached_result.allowed then
-    return
+    return on_source_done(false)
   end
 
   local current_hash = file_hash(filepath)
 
   if cached_result and cached_result.hash == current_hash then
     vim.cmd("source " .. filepath)
-    return
+    return on_source_done(true)
   end
 
   local relative_filepath = vim.fn.fnamemodify(filepath, ":.")
@@ -75,10 +79,12 @@ function mod.source(filepath)
     allow = function()
       cache.set(filepath, { allowed = true, hash = current_hash })
       vim.cmd("source " .. filepath)
+      return on_source_done(true)
     end,
 
     disallow = function()
       cache.set(filepath, { allowed = false, hash = current_hash })
+      return on_source_done(false)
     end,
 
     open = function()
