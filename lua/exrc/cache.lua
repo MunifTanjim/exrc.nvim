@@ -1,7 +1,7 @@
 local cache_path = vim.fn.stdpath("cache") .. "/exrc.nvim.json"
 
 local cache_default_data = {
-  __exrc__ = "v0.0",
+  __exrc__ = "v0.1",
 }
 
 ---@param data table JSON object
@@ -75,11 +75,17 @@ local cache = {
   _initialized = false,
 }
 
+---@param filepath string
+---@return nil|{ hash: string, allowed: boolean, modified_at: number }
 function cache.get(filepath)
   return cache_data[filepath]
 end
 
+---@param filepath string
+---@param value { hash: string, allowed: boolean }
 function cache.set(filepath, value)
+  value.modified_at = os.time()
+
   cache_data[filepath] = value
 
   vim.schedule(function()
