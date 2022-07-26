@@ -1,42 +1,89 @@
+local cache_path = vim.fn.stdpath("cache") .. "/exrc.nvim.json"
+
+local cache_default_data = {
+  __exrc__ = "v0.0",
+}
+
 ---@param data table JSON object
----@returns string encoded string
+---@return string|nil blob # encoded string
+---@return nil|string error
 local function json_encode(data)
-  local success, result = pcall(vim.fn.json_encode, data)
+  local ok, result = pcall(vim.fn.json_encode, data)
 
-  if success then
+  if ok then
     return result
   end
 
   return nil, result
 end
 
----@param data string encoded string
----@returns table JSON object
-local function json_decode(data)
-  local success, result = pcall(vim.fn.json_decode, data)
+---@param blob string # encoded string
+---@return table|nil data # JSON object
+---@return nil|table error
+local function json_decode(blob)
+  local ok, result = pcall(vim.fn.json_decode, blob)
 
-  if success then
+  if ok then
     return result
   end
 
   return nil, result
 end
 
-local data = {}
+local function cache_file_exists()
+  return vim.fn.filereadable(cache_path) == 1
+end
+
+local function cache_file_read()
+  local blob = vim.fn.readfile(cache_path)[1]
+
+  local decoded_data, err = json_decode(blob)
+  if err then
+    vim.api.nvim_err_writeln("[exrc.nvim] file read error: " .. err)
+    return
+  end
+
+  return decoded_data
+end
+
+---@param data table
+local function cache_file_write(data)
+  local blob, err = json_encode(data)
+  if err then
+    vim.api.nvim_err_writeln("[exrc.nvim] file write error: " .. err)
+    return
+  end
+
+  vim.fn.writefile({ blob }, cache_path)
+end
+
+local function cache_file_ensure()
+  if not cache_file_exists() then
+    vim.fn.mkdir(vim.fn.fnamemodify(cache_path, ":h"), "p")
+    cache_file_write(cache_default_data)
+  end
+end
+
+---@param data table|nil
+local function cache_has_current_version(data)
+  return data and data.__exrc__ == cache_default_data.__exrc__ or false
+end
+
+local cache_data
 
 local cache = {
   _initialized = false,
-  path = vim.fn.stdpath("cache") .. "/exrc.nvim.json",
 }
 
 function cache.get(filepath)
-  return data[filepath]
+  return cache_data[filepath]
 end
 
 function cache.set(filepath, value)
-  data[filepath] = value
+  cache_data[filepath] = value
+
   vim.schedule(function()
-    vim.fn.writefile({ json_encode(data) }, cache.path)
+    cache_file_write(cache_data)
   end)
 end
 
@@ -45,12 +92,15 @@ function cache.setup()
     return
   end
 
-  if vim.fn.glob(cache.path) == "" then
-    vim.fn.mkdir(vim.fn.fnamemodify(cache.path, ":h"), "p")
-    vim.fn.writefile({ json_encode(data) }, cache.path)
-  end
+  cache_file_ensure()
 
-  data = json_decode(vim.fn.readfile(cache.path))
+  local data = cache_file_read()
+
+  if cache_has_current_version(data) then
+    cache_data = data
+  else
+    cache_data = vim.deepcopy(cache_default_data)
+  end
 
   cache._initialized = true
 end
