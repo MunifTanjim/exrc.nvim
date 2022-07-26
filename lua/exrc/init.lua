@@ -42,7 +42,7 @@ end
 function mod.try_source()
   for _, file in ipairs(options.get("files")) do
     local filepath = vim.fn.fnamemodify(file, ":p")
-    if vim.fn.glob(filepath) ~= "" then
+    if vim.fn.filereadable(filepath) == 1 then
       mod.source(filepath)
       break
     end
@@ -65,6 +65,11 @@ function mod.source(filepath)
   end
 
   local relative_filepath = vim.fn.fnamemodify(filepath, ":.")
+
+  local title = "[Config Changed: " .. relative_filepath .. "]"
+  if not cached_result then
+    title = "[Config Unknown: " .. relative_filepath .. "]"
+  end
 
   local action = {
     allow = function()
@@ -94,17 +99,17 @@ function mod.source(filepath)
     end,
   }
 
-  local title = "[Config Changed: " .. relative_filepath .. "]"
-
-  if not cached_result then
-    title = "[Config Unknown: " .. relative_filepath .. "]"
-  end
+  local items = {
+    Menu.item("[A]llow", { action = "allow", key = "a" }),
+    Menu.item("[D]isallow", { action = "disallow", key = "d" }),
+    Menu.item("[C]lose", { action = "close", key = "c" }),
+    Menu.item("[O]pen", { action = "open", key = "o" }),
+  }
 
   local menu = Menu({
     relative = "editor",
     border = {
       style = "rounded",
-      highlight = "Normal",
       text = {
         top = title,
       },
@@ -114,15 +119,10 @@ function mod.source(filepath)
       col = "50%",
     },
     win_options = {
-      winhighlight = "Normal:Normal",
+      winhighlight = "Normal:Normal,FloatBorder:Normal",
     },
   }, {
-    lines = {
-      Menu.item("[A]llow", { action = "allow" }),
-      Menu.item("[D]isallow", { action = "disallow" }),
-      Menu.item("[C]lose"),
-      Menu.item("[O]pen", { action = "open" }),
-    },
+    lines = items,
     min_width = #title + 2,
     keymap = {
       focus_next = { "j", "<Down>", "<Tab>" },
@@ -137,32 +137,23 @@ function mod.source(filepath)
     end,
   })
 
-  menu:mount()
-
   menu:on("BufLeave", function()
     menu:unmount()
   end, { once = true })
 
   local map_options = { noremap = true, nowait = true }
 
-  menu:map("n", "a", function()
-    menu:unmount()
-    action.allow()
-  end, map_options)
+  for _, item in ipairs(items) do
+    menu:map("n", item.key, function()
+      menu:unmount()
 
-  menu:map("n", "d", function()
-    menu:unmount()
-    action.disallow()
-  end, map_options)
+      if item.action and action[item.action] then
+        action[item.action]()
+      end
+    end, map_options)
+  end
 
-  menu:map("n", "c", function()
-    menu:unmount()
-  end, map_options)
-
-  menu:map("n", "o", function()
-    menu:unmount()
-    action.open()
-  end, map_options)
+  menu:mount()
 end
 
 return mod
