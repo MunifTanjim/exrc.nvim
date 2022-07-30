@@ -26,26 +26,17 @@ function mod.setup(user_options)
     augroup exrc-nvim-source
       autocmd!
 
-      autocmd DirChanged * if v:event.scope ==# "global" | call v:lua.require("exrc").try_source() | endif
+      autocmd DirChanged * if v:event.scope ==# "global" | call v:lua.require("exrc").source() | endif
 
       if v:vim_did_enter
-        lua require("exrc").try_source()
+        lua require("exrc").source()
       else
-        autocmd VimEnter * lua require("exrc").try_source()
+        autocmd VimEnter * lua require("exrc").source()
       endif
     augroup END
   ]])
 
   mod._initialized = true
-end
-
-function mod.try_source()
-  for _, file in ipairs(options.get("files")) do
-    local filepath = vim.fn.fnamemodify(file, ":p")
-    if vim.fn.filereadable(filepath) == 1 then
-      return mod.source(filepath)
-    end
-  end
 end
 
 local function on_source_done(sourced)
@@ -54,7 +45,7 @@ local function on_source_done(sourced)
   end
 end
 
-function mod.source(filepath)
+local function source(filepath)
   local cached_result = cache.get(filepath)
 
   if cached_result and not cached_result.allowed then
@@ -160,6 +151,15 @@ function mod.source(filepath)
   end
 
   menu:mount()
+end
+
+function mod.source()
+  for _, file in ipairs(options.get("files")) do
+    local filepath = vim.fn.fnamemodify(file, ":p")
+    if vim.fn.filereadable(filepath) == 1 then
+      return source(filepath)
+    end
+  end
 end
 
 return mod
