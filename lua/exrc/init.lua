@@ -84,7 +84,7 @@ local function source(filepath)
           "tabedit +%s %s",
           string.gsub(
             string.format(
-              [[set nohidden | autocmd BufWinLeave <buffer> ++once :lua require("exrc").source("%s")]],
+              [[set bufhidden=wipe | autocmd BufWinLeave <buffer> ++once :lua require("exrc").source()]],
               filepath
             ),
             " ",
