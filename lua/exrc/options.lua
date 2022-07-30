@@ -3,6 +3,7 @@ local default_options = {
   files = {
     ".nvimrc.lua",
     ".nvimrc",
+    ".exrc.lua",
     ".exrc",
   },
 }
