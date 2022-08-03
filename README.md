@@ -29,9 +29,26 @@ require("exrc").setup({
   files = {
     ".nvimrc.lua",
     ".nvimrc",
+    ".exrc.lua",
     ".exrc",
   },
 })
+```
+
+## Commands
+
+### `ExrcSource`
+
+Re-source exrc file:
+
+```vim
+:ExrcSource
+```
+
+Reset state and re-source exrc file:
+
+```vim
+:ExrcSource!
 ```
 
 ## Similar Projects

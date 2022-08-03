@@ -85,9 +85,11 @@ function state.get(filepath)
 end
 
 ---@param filepath string
----@param value { hash: string, allowed: boolean }
+---@param value? { hash: string, allowed: boolean }
 function state.set(filepath, value)
-  value.modified_at = os.time()
+  if value then
+    value.modified_at = os.time()
+  end
 
   state_data[filepath] = value
 

@@ -153,10 +153,14 @@ local function source(filepath)
   menu:mount()
 end
 
-function mod.source()
+function mod.source(reset)
   for _, file in ipairs(options.get("files")) do
     local filepath = vim.fn.fnamemodify(file, ":p")
     if vim.fn.filereadable(filepath) == 1 then
+      if reset then
+        state.set(filepath, nil)
+      end
+
       return source(filepath)
     end
   end
