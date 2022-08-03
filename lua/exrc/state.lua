@@ -1,4 +1,7 @@
-local state_path = vim.fn.stdpath("cache") .. "/exrc.nvim.json"
+local state_path = (function()
+  local ok, dir = pcall(vim.fn.stdpath, "state")
+  return ok and dir or vim.fn.stdpath("cache")
+end)() .. "/exrc.nvim.json"
 
 local state_default_data = {
   __exrc__ = "v0.1",
