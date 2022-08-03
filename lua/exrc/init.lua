@@ -48,15 +48,15 @@ end
 local function source(filepath)
   local cached_result = cache.get(filepath)
 
-  if cached_result and not cached_result.allowed then
-    return on_source_done(false)
-  end
-
   local current_hash = file_hash(filepath)
 
   if cached_result and cached_result.hash == current_hash then
-    vim.cmd("source " .. filepath)
-    return on_source_done(true)
+    if cached_result.allowed then
+      vim.cmd("source " .. filepath)
+      return on_source_done(true)
+    else
+      return on_source_done(false)
+    end
   end
 
   local relative_filepath = vim.fn.fnamemodify(filepath, ":.")
