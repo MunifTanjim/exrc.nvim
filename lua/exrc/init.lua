@@ -41,7 +41,7 @@ end
 
 local function on_source_done(sourced)
   if sourced then
-    vim.api.nvim_exec([[doautocmd <nomodeline> User ExrcDone]], false)
+    vim.api.nvim_exec([[doautocmd <nomodeline> User ExrcSourced]], false)
   end
 end
 
