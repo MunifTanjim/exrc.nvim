@@ -1,5 +1,5 @@
-local cache = require("exrc.cache")
 local options = require("exrc.options")
+local state = require("exrc.state")
 local Menu = require("nui.menu")
 
 local function file_hash(filepath)
@@ -16,7 +16,7 @@ function mod.setup(user_options)
   end
 
   options.setup(user_options or {})
-  cache.setup()
+  state.setup()
 
   if vim.o.exrc then
     error("[exrc.nvim] unset 'exrc' to use this plugin!")
@@ -46,12 +46,12 @@ local function on_source_done(sourced)
 end
 
 local function source(filepath)
-  local cached_result = cache.get(filepath)
+  local state_result = state.get(filepath)
 
   local current_hash = file_hash(filepath)
 
-  if cached_result and cached_result.hash == current_hash then
-    if cached_result.allowed then
+  if state_result and state_result.hash == current_hash then
+    if state_result.allowed then
       vim.cmd("source " .. filepath)
       return on_source_done(true)
     else
@@ -62,19 +62,19 @@ local function source(filepath)
   local relative_filepath = vim.fn.fnamemodify(filepath, ":.")
 
   local title = "[Config Changed: " .. relative_filepath .. "]"
-  if not cached_result then
+  if not state_result then
     title = "[Config Unknown: " .. relative_filepath .. "]"
   end
 
   local action = {
     allow = function()
-      cache.set(filepath, { allowed = true, hash = current_hash })
+      state.set(filepath, { allowed = true, hash = current_hash })
       vim.cmd("source " .. filepath)
       return on_source_done(true)
     end,
 
     disallow = function()
-      cache.set(filepath, { allowed = false, hash = current_hash })
+      state.set(filepath, { allowed = false, hash = current_hash })
       return on_source_done(false)
     end,
 
