@@ -2,17 +2,18 @@
 
 Local config file with confirmation for Neovim.
 
-## Requirements
-
-- [`MunifTanjim/nui.nvim`](https://github.com/MunifTanjim/nui.nvim)
-
 ## Installation
 
-Install the plugins with your preferred plugin manager. For example, with [`vim-plug`](https://github.com/junegunn/vim-plug):
+Install the plugin with your preferred plugin manager. For example, with [`vim-plug`](https://github.com/junegunn/vim-plug):
+
+```vim
+Plug 'MunifTanjim/exrc.nvim'
+```
+
+It's recommended to also install [`nui.nvim`](https://github.com/MunifTanjim/nui.nvim) for a better UX:
 
 ```vim
 Plug 'MunifTanjim/nui.nvim'
-Plug 'MunifTanjim/exrc.nvim'
 ```
 
 ## Setup

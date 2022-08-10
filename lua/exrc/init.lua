@@ -1,6 +1,6 @@
 local options = require("exrc.options")
 local state = require("exrc.state")
-local Menu = require("nui.menu")
+local ui = require("exrc.ui")
 
 local function file_hash(filepath)
   return vim.fn.sha256(table.concat(vim.fn.readfile(filepath, "b"), "\n"))
@@ -96,61 +96,22 @@ local function source(filepath)
     end,
   }
 
+  ---@type { text: string, action: string, key: string }[]
   local items = {
-    Menu.item("[A]llow", { action = "allow", key = "a" }),
-    Menu.item("[D]isallow", { action = "disallow", key = "d" }),
-    Menu.item("[C]lose", { action = "close", key = "c" }),
-    Menu.item("[O]pen", { action = "open", key = "o" }),
+    { text = "Allow", action = "allow", key = "a" },
+    { text = "Disallow", action = "disallow", key = "d" },
+    { text = "Close", action = "close", key = "c" },
+    { text = "Open", action = "open", key = "o" },
   }
 
-  local menu = Menu({
-    relative = "editor",
-    border = {
-      style = "rounded",
-      text = {
-        top = title,
-      },
-    },
-    position = {
-      row = "50%",
-      col = "50%",
-    },
-    win_options = {
-      winhighlight = "Normal:Normal,FloatBorder:Normal",
-    },
-  }, {
-    lines = items,
-    min_width = #title + 2,
-    keymap = {
-      focus_next = { "j", "<Down>", "<Tab>" },
-      focus_prev = { "k", "<Up>", "<S-Tab>" },
-      close = { "<Esc>", "<C-c>" },
-      submit = { "<CR>", "<Space>" },
-    },
-    on_submit = function(item)
-      if item.action and action[item.action] then
-        action[item.action]()
-      end
-    end,
-  })
-
-  menu:on("BufLeave", function()
-    menu:unmount()
-  end, { once = true })
-
-  local map_options = { noremap = true, nowait = true }
-
-  for _, item in ipairs(items) do
-    menu:map("n", item.key, function()
-      menu:unmount()
-
-      if item.action and action[item.action] then
-        action[item.action]()
-      end
-    end, map_options)
-  end
-
-  menu:mount()
+  ui.select(items, {
+    kind = "exrc.nvim",
+    prompt = title,
+  }, function(item)
+    if item and item.action and action[item.action] then
+      action[item.action]()
+    end
+  end)
 end
 
 function mod.source(reset)
