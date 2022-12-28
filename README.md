@@ -1,3 +1,17 @@
+> **Warning**
+>
+> Neovim v0.9.0 onwards supports secure `.exrc`, `.nvimrc` and `.nvim.lua` files. You don't need this plugin anymore.
+>
+> Just enable the `'exrc'` option:
+>
+> ```lua
+> vim.o.exrc = true
+> ```
+>
+> For more information, check:
+> - `:help 'exrc'`
+> - `:help exrc`
+
 # exrc.nvim
 
 Local config file with confirmation for Neovim.
